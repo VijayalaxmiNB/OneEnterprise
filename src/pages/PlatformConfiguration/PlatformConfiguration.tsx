@@ -1,11 +1,28 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  Check, ChevronDown, Eye, EyeOff, FileSearch, Globe2, Info,
-  LockKeyhole, Network, Save, Send, Settings, ShieldCheck,
-  ShieldHalf, ShieldPlus, UploadCloud, X,
+  Check,
+  ChevronDown,
+  Download,
+  Eye,
+  EyeOff,
+  FileSearch,
+  Globe2,
+  Info,
+  LockKeyhole,
+  Network,
+  Send,
+  Settings,
+  ShieldCheck,
+  ShieldHalf,
+  ShieldPlus,
+  UploadCloud,
+  X,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils/cn'
 
 type ModalType = 'smtp' | 'sms' | 'api' | null
 
@@ -58,42 +75,48 @@ export default function PlatformConfiguration() {
   const handleSave = () => setSaved(true)
   const handleCancel = () => setSaved(false)
 
+  const openModal = (type: ModalType) => {
+    setModal(type)
+    setModalSaved(false)
+  }
+
   return (
-    <PageContainer className="space-y-4">
-      <div>
-        <div className="flex items-center gap-2 text-[10px] text-slate-500">
-          <span>Administration</span><span>›</span><span>Platform Configuration</span>
+    <PageContainer className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Platform Configuration</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage core platform identity, regional defaults, and security handling.
+          </p>
         </div>
-        <h1 className="mt-1 text-[20px] font-bold text-[#111827]">Platform Configuration</h1>
-        <p className="mt-1 text-[10px] text-slate-500">
-          Manage core platform identity, regional defaults, and security handling.
-        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>
+            <Download className="h-3.5 w-3.5" strokeWidth={2} />
+            Save Changes
+          </Button>
+        </div>
       </div>
 
-      {saved && <SuccessMessage />}
+      {saved && <SuccessBanner />}
 
-      <div className="grid gap-4 lg:grid-cols-[1.65fr_0.9fr]">
-        <div className="space-y-4">
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <SectionTitle
-              icon={
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border-2 border-[#315fd7]">
-                  <Settings size={13} />
-                </span>
-              }
-              title="Basic Configuration"
-            />
-            <div className="space-y-4 border-t border-slate-100 p-4">
-              <FormField label="PLATFORM NAME" value={platformName} onChange={setPlatformName} />
-              <FormField label="PLATFORM URL" value={platformUrl} onChange={setPlatformUrl} />
+      <div className="grid gap-6 lg:grid-cols-[1.65fr_0.9fr]">
+        <div className="space-y-6">
+          <Card>
+            <CardTitle icon={Settings} title="Basic Configuration" />
+            <div className="mt-5 space-y-4">
+              <Field label="Platform Name" value={platformName} onChange={setPlatformName} />
+              <Field label="Platform URL" value={platformUrl} onChange={setPlatformUrl} />
             </div>
-          </section>
+          </Card>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <SectionTitle icon={<Globe2 size={18} />} title="Regional Configuration" />
-            <div className="grid gap-4 border-t border-slate-100 p-4 sm:grid-cols-2">
+          <Card>
+            <CardTitle icon={Globe2} title="Regional Configuration" />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <SelectField
-                label="DEFAULT TIME ZONE"
+                label="Default Time Zone"
                 value={timezone}
                 onChange={setTimezone}
                 options={[
@@ -104,453 +127,581 @@ export default function PlatformConfiguration() {
                 ]}
               />
               <SelectField
-                label="DEFAULT LANGUAGE"
+                label="Default Language"
                 value={language}
                 onChange={setLanguage}
                 options={['ENGLISH', 'HINDI', 'KANNADA', 'FRENCH']}
               />
             </div>
-          </section>
+          </Card>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <SectionTitle icon={<Network size={19} />} title="Communication & Integration" />
-            <div className="divide-y divide-slate-100 border-t border-slate-100">
-              <IntegrationItem title="SMTP Configuration" description="Manage email server settings" onClick={() => { setModal('smtp'); setModalSaved(false) }} />
-              <IntegrationItem title="SMS Gateway" description="Twilio integration settings" onClick={() => { setModal('sms'); setModalSaved(false) }} />
-              <IntegrationItem title="API Gateway" description="External system access tokens" onClick={() => { setModal('api'); setModalSaved(false) }} />
+          <Card>
+            <CardTitle icon={Network} title="Communication & Integration" />
+            <div className="mt-3 divide-y divide-border">
+              <IntegrationRow
+                title="SMTP Configuration"
+                description="Manage email server settings"
+                onClick={() => openModal('smtp')}
+              />
+              <IntegrationRow
+                title="SMS Gateway"
+                description="Twilio integration settings"
+                onClick={() => openModal('sms')}
+              />
+              <IntegrationRow
+                title="API Gateway"
+                description="External system access tokens"
+                onClick={() => openModal('api')}
+              />
             </div>
-          </section>
+          </Card>
 
-          <div className="flex gap-3 rounded-lg bg-[#e9ebef] px-4 py-3">
-            <Info size={18} className="mt-0.5 shrink-0 text-[#2563eb]" />
+          <div className="flex gap-3 rounded-xl border border-border bg-muted/60 p-4">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={1.75} />
             <div>
-              <p className="text-[11px] font-semibold text-[#334155]">Deployment Note</p>
-              <p className="mt-1 text-[10px] leading-5 text-[#64748b]">
-                Changes to Core Platform configurations may require a service restart for integrated modules to reflect the updates completely.
+              <p className="text-sm font-semibold text-foreground">Deployment Note</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Changes to Core Platform configurations may require a service restart for integrated
+                modules to reflect the updates completely.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 bg-[#edf1f6] px-4 py-3">
-              <ShieldHalf size={18} className="text-[#315fd7]" />
-              <h2 className="text-[15px] font-bold text-[#1e293b]">Security Handling</h2>
+        <div className="space-y-6">
+          <Card className="p-0">
+            <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+              <ShieldHalf className="h-4 w-4 text-primary" strokeWidth={1.75} />
+              <h2 className="text-sm font-semibold text-foreground">Security Handling</h2>
             </div>
 
-            <div className="space-y-7 p-5">
-              <SecurityItem icon={<ShieldCheck size={17} />} title="Configuration version control" description="All changes are tracked and can be rolled back." />
-              <SecurityItem icon={<LockKeyhole size={17} />} title="Encryption of sensitive credentials" description="API keys and passwords are AES-256 encrypted." />
-              <SecurityItem icon={<FileSearch size={17} />} title="Audit logs" description="Comprehensive logging of administrative actions." />
+            <div className="space-y-5 px-5 py-5">
+              <SecurityRow
+                icon={ShieldCheck}
+                title="Configuration version control"
+                description="All changes are tracked and can be rolled back."
+              />
+              <SecurityRow
+                icon={LockKeyhole}
+                title="Encryption of sensitive credentials"
+                description="API keys and passwords are AES-256 encrypted."
+              />
+              <SecurityRow
+                icon={FileSearch}
+                title="Audit logs"
+                description="Comprehensive logging of administrative actions."
+              />
             </div>
 
-            <div className="border-t border-slate-200 bg-[#fafafa]">
-              <div className="flex items-center gap-3 px-4 py-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8eef9]">
-                  <ShieldPlus size={19} className="text-[#315fd7]" />
-                </div>
-                <div>
-                  <p className="text-[12px] font-medium text-[#334155]">System Health</p>
-                  <p className="text-[11px] font-medium text-[#43a261]">Optimal State</p>
-                </div>
+            <div className="flex items-center gap-3 border-t border-border px-5 py-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-primary">
+                <ShieldPlus className="h-4.5 w-4.5" strokeWidth={1.75} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">System Health</p>
+                <p className="text-xs font-medium text-success">Optimal State</p>
               </div>
             </div>
-          </section>
+          </Card>
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
-        <button type="button" onClick={handleCancel} className="h-8 rounded-md border border-slate-200 bg-white px-4 text-[10px] font-semibold text-slate-700">
-          Cancel
-        </button>
-        <button type="button" onClick={handleSave} className="inline-flex h-8 items-center gap-2 rounded-md bg-[#4b43e8] px-4 text-[10px] font-semibold text-white">
-          <Save size={12} />
-          Save Changes
-        </button>
-      </div>
-
       {modal === 'smtp' && (
-        <ModalOverlay>
-          <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-2xl">
-            <ModalHeader
-              title="Configure SMTP"
-              description="See your SMTP server details to enable outgoing email notifications."
-              onClose={() => setModal(null)}
+        <ModalShell
+          title="Configure SMTP"
+          description="See your SMTP server details to enable outgoing email notifications."
+          onClose={() => setModal(null)}
+          maxWidth="max-w-[520px]"
+          footer={<ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />}
+        >
+          {modalSaved && <SuccessBanner compact />}
+          <div className="space-y-4">
+            <Field label="SMTP Host *" value={smtpHost} onChange={setSmtpHost} />
+            <Field label="Port *" value={smtpPort} onChange={setSmtpPort} />
+            <Field label="User Name *" value={smtpUsername} onChange={setSmtpUsername} />
+            <PasswordField
+              label="Password *"
+              value={smtpPassword}
+              visible={showPassword}
+              onChange={setSmtpPassword}
+              onToggle={() => setShowPassword(!showPassword)}
+            />
+            <SelectField label="Encryption *" value={encryption} onChange={setEncryption} options={['TLS', 'SSL', 'None']} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="From Email *" value={fromEmail} onChange={setFromEmail} />
+              <Field label="From Name *" value={fromName} onChange={setFromName} />
+            </div>
+            <TestConnectionButton />
+          </div>
+        </ModalShell>
+      )}
+
+      {modal === 'sms' && (
+        <ModalShell
+          title="SMS Gateway Configuration"
+          description="Configure SMS Gateway settings to send SMS from the application."
+          onClose={() => setModal(null)}
+          maxWidth="max-w-[520px]"
+          footer={<ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />}
+        >
+          {modalSaved && <SuccessBanner compact />}
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Gateway Provider *" value={smsProvider} onChange={setSmsProvider} />
+              <Field label="Gateway Name *" value={smsGatewayName} onChange={setSmsGatewayName} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="API Base URL *" value={smsApiUrl} onChange={setSmsApiUrl} helper="Base URL for Stackly API" />
+              <PasswordField
+                label="Account SID *"
+                value={smsAccountSid}
+                visible={showSmsSid}
+                onChange={setSmsAccountSid}
+                onToggle={() => setShowSmsSid(!showSmsSid)}
+                helper="Your Stackly Account SID"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="From Number / Sender ID *"
+                value={smsSender}
+                onChange={setSmsSender}
+                helper="Phone number or Sender ID to send SMS from"
+              />
+              <Field
+                label="Connection Timeout (Seconds)"
+                value={smsTimeout}
+                onChange={setSmsTimeout}
+                helper="Timeout for API requests"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <PasswordField
+                label="Auth Token *"
+                value={smsAuthToken}
+                visible={showSmsToken}
+                onChange={setSmsAuthToken}
+                onToggle={() => setShowSmsToken(!showSmsToken)}
+                helper="Your Stackly Auth Token"
+              />
+              <Field
+                label="Messaging Service SID (Optional) *"
+                value={smsMessagingSid}
+                onChange={setSmsMessagingSid}
+                helper="Stackly Messaging Service SID"
+              />
+            </div>
+
+            <ToggleRow
+              label="Enable Gateway"
+              checked={smsEnabled}
+              onChange={setSmsEnabled}
+              description="Enable this SMS gateway"
             />
 
-            {modalSaved && (
-              <div className="px-4 pb-3">
-                <SuccessMessage />
-              </div>
-            )}
+            <NotesBox
+              items={[
+                'Ensure your Stackly account is active and has sufficient balance.',
+                'Update the from number / Sender ID with a valid and verified number.',
+                'Changes may take a few minutes.',
+              ]}
+            />
+          </div>
+        </ModalShell>
+      )}
 
-            <div className="space-y-3 px-4 pb-5">
-              <FormField label="SMTP Host *" value={smtpHost} onChange={setSmtpHost} />
-              <FormField label="Port *" value={smtpPort} onChange={setSmtpPort} />
-              <FormField label="User name *" value={smtpUsername} onChange={setSmtpUsername} />
+      {modal === 'api' && (
+        <ModalShell
+          title="API Gateway Configuration"
+          description="Configure API Gateway settings to connect and communicate with external services."
+          onClose={() => setModal(null)}
+          maxWidth="max-w-[600px]"
+          footer={<ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />}
+        >
+          {modalSaved && <SuccessBanner compact />}
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Gateway Name *" value={apiGatewayName} onChange={setApiGatewayName} />
+              <Field label="Environment *" value={apiEnvironment} onChange={setApiEnvironment} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Base URL *" value={apiBaseUrl} onChange={setApiBaseUrl} helper="Base URL of the API Gateway" />
+              <Field label="API Version *" value={apiVersion} onChange={setApiVersion} helper="API version (e.g., v1, v2)" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Authentication Type *" value={authenticationType} onChange={setAuthenticationType} />
               <PasswordField
-                label="Password *"
-                value={smtpPassword}
-                visible={showPassword}
-                onChange={setSmtpPassword}
-                onToggle={() => setShowPassword(!showPassword)}
+                label="API Key *"
+                value={apiKey}
+                visible={showApiKey}
+                onChange={setApiKey}
+                onToggle={() => setShowApiKey(!showApiKey)}
               />
-              <SelectField label="Encryption *" value={encryption} onChange={setEncryption} options={['TLS', 'SSL', 'None']} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="From Email *" value={fromEmail} onChange={setFromEmail} />
-                <FormField label="From Name *" value={fromName} onChange={setFromName} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <PasswordField
+                label="API Secret *"
+                value={apiSecret}
+                visible={showApiSecret}
+                onChange={setApiSecret}
+                onToggle={() => setShowApiSecret(!showApiSecret)}
+                helper="Secret used to authenticate API requests"
+              />
+              <Field
+                label="Header Name (Optional) *"
+                value={headerName}
+                onChange={setHeaderName}
+                helper="Custom header name for API key (if required)"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Request Timeout (Seconds) *"
+                value={requestTimeout}
+                onChange={setRequestTimeout}
+                helper="Timeout for API requests"
+              />
+              <Field
+                label="Retry Attempts *"
+                value={retryAttempts}
+                onChange={setRetryAttempts}
+                helper="Number of retry attempts on failure"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Rate Limit (requests/minute) *"
+                value={rateLimit}
+                onChange={setRateLimit}
+                helper="Maximum number of requests allowed per minute"
+              />
+              <ToggleRow
+                label="Enable Gateway"
+                checked={apiEnabled}
+                onChange={setApiEnabled}
+                description="Enable the API gateway"
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-accent px-4 py-3">
+              <div className="flex items-center gap-3">
+                <UploadCloud className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                <span className="text-sm font-semibold text-foreground">API Gateway Configuration</span>
               </div>
               <TestConnectionButton />
             </div>
 
-            <ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />
-          </div>
-        </ModalOverlay>
-      )}
-
-      {modal === 'sms' && (
-        <ModalOverlay>
-          <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-2xl">
-            <ModalHeader
-              title="SMS Gateway Configuration"
-              description="Configure SMS Gateway settings to send SMS from the application."
-              onClose={() => setModal(null)}
+            <NotesBox
+              items={[
+                'Ensure the Base URL is accessible from the application server.',
+                'Use a secure API Key and keep the API Secret confidential.',
+                'Changes may take a few minutes to reflect in the system.',
+              ]}
             />
-
-            {modalSaved && (
-              <div className="px-4 pb-3">
-                <SuccessMessage />
-              </div>
-            )}
-
-            <div className="space-y-3 px-4 pb-5">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Gateway Provider *" value={smsProvider} onChange={setSmsProvider} />
-                <FormField label="Gateway Name *" value={smsGatewayName} onChange={setSmsGatewayName} />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="API Base URL *" value={smsApiUrl} onChange={setSmsApiUrl} helper="Base URL for Stackly API" />
-                <PasswordField
-                  label="Account SID *"
-                  value={smsAccountSid}
-                  visible={showSmsSid}
-                  onChange={setSmsAccountSid}
-                  onToggle={() => setShowSmsSid(!showSmsSid)}
-                  helper="Your Stackly Account SID"
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="From Number / Sender ID *" value={smsSender} onChange={setSmsSender} helper="Phone number or Sender ID to send SMS from" />
-                <FormField label="Connection Timeout (Seconds)" value={smsTimeout} onChange={setSmsTimeout} helper="Timeout for API requests" />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <PasswordField
-                  label="Auth Token *"
-                  value={smsAuthToken}
-                  visible={showSmsToken}
-                  onChange={setSmsAuthToken}
-                  onToggle={() => setShowSmsToken(!showSmsToken)}
-                  helper="Your Stackly Auth Token"
-                />
-                <FormField label="Messaging Service SID (Optional) *" value={smsMessagingSid} onChange={setSmsMessagingSid} helper="Stackly Messaging Service SID" />
-              </div>
-
-              <ToggleField label="Enable Gateway" checked={smsEnabled} onChange={setSmsEnabled} description="Enable this SMS gateway" />
-
-              <ImportantNotes
-                items={[
-                  'Ensure your Stackly account is active and has sufficient balance.',
-                  'Update the from number / Sender ID with a valid and verified number.',
-                  'Changes may take a few minutes.',
-                ]}
-              />
-            </div>
-
-            <ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />
           </div>
-        </ModalOverlay>
-      )}
-
-      {modal === 'api' && (
-        <ModalOverlay>
-          <div className="w-full max-w-[600px] overflow-hidden rounded-xl bg-white shadow-2xl">
-            <ModalHeader
-              title="API Gateway Configuration"
-              description="Configure API Gateway settings to connect and communicate with external services."
-              onClose={() => setModal(null)}
-            />
-
-            {modalSaved && (
-              <div className="px-4 pb-3">
-                <SuccessMessage />
-              </div>
-            )}
-
-            <div className="space-y-3 px-4 pb-5">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Gateway Name *" value={apiGatewayName} onChange={setApiGatewayName} />
-                <FormField label="Environment *" value={apiEnvironment} onChange={setApiEnvironment} />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Base URL *" value={apiBaseUrl} onChange={setApiBaseUrl} helper="Base URL of the API Gateway" />
-                <FormField label="API Version *" value={apiVersion} onChange={setApiVersion} helper="API version (e.g., v1,v2)" />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Authentication Type *" value={authenticationType} onChange={setAuthenticationType} />
-                <PasswordField
-                  label="API Key *"
-                  value={apiKey}
-                  visible={showApiKey}
-                  onChange={setApiKey}
-                  onToggle={() => setShowApiKey(!showApiKey)}
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <PasswordField
-                  label="API Secret *"
-                  value={apiSecret}
-                  visible={showApiSecret}
-                  onChange={setApiSecret}
-                  onToggle={() => setShowApiSecret(!showApiSecret)}
-                  helper="Secret used to authenticate API requests"
-                />
-                <FormField label="Header Name (Optional) *" value={headerName} onChange={setHeaderName} helper="Custom header name for API key (if required)" />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Request Timeout (Seconds) *" value={requestTimeout} onChange={setRequestTimeout} helper="Timeout for API requests" />
-                <FormField label="Retry Attempts *" value={retryAttempts} onChange={setRetryAttempts} helper="Number of retry attempts on failure" />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label="Rate Limit (requests/minute) *" value={rateLimit} onChange={setRateLimit} helper="Maximum number of requests allowed per minute" />
-                <ToggleField label="Enable Gateway" checked={apiEnabled} onChange={setApiEnabled} description="Enable the API gateway" />
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg bg-[#f4f5ff] px-3 py-2.5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full">
-                    <UploadCloud size={18} className="text-[#4b43e8]" />
-                  </div>
-                  <span className="text-[11px] font-semibold text-[#334155]">API Gateway Configuration</span>
-                </div>
-                <TestConnectionButton />
-              </div>
-
-              <ImportantNotes
-                items={[
-                  'Ensure the Base URL is accessible from the application server.',
-                  'Use a secure API Key and keep the API Secret confidential.',
-                  'Changes may take a few minutes to reflect in the system.',
-                ]}
-              />
-            </div>
-
-            <ModalFooter onCancel={() => setModal(null)} onSave={() => setModalSaved(true)} />
-          </div>
-        </ModalOverlay>
+        </ModalShell>
       )}
     </PageContainer>
   )
 }
 
-function SuccessMessage() {
+function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="flex min-h-[38px] items-center gap-3 rounded-lg border border-[#dbe8df] bg-white px-3 shadow-sm">
-      <div className="h-7 w-[3px] rounded-full bg-[#3b8d57]" />
-      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3b8d57]">
-        <Check size={10} strokeWidth={3} className="text-white" />
-      </div>
-      <span className="text-[9px] font-medium text-[#3b7d4d]">Your changes has been saved successfully.</span>
-    </div>
-  )
-}
-
-function SectionTitle({ icon, title }: { icon: ReactNode; title: string }) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-3">
-      <span className="text-[#315fd7]">{icon}</span>
-      <h2 className="text-[11px] font-bold text-[#1e293b]">{title}</h2>
-    </div>
-  )
-}
-
-function FormField({
-  label, value, onChange, helper,
-}: { label: string; value: string; onChange?: (value: string) => void; helper?: string }) {
-  return (
-    <div>
-      <label className="mb-1 block text-[9px] font-semibold text-[#334155]">{label}</label>
-      <input
-        value={value}
-        readOnly={!onChange}
-        onChange={(e) => onChange?.(e.target.value)}
-        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 text-[10px] text-slate-700 outline-none transition focus:border-[#5876e8]"
-      />
-      {helper && <p className="mt-1 text-[7px] text-slate-500">{helper}</p>}
-    </div>
-  )
-}
-
-function PasswordField({
-  label, value, visible, onChange, onToggle, helper,
-}: { label: string; value: string; visible: boolean; onChange: (value: string) => void; onToggle: () => void; helper?: string }) {
-  return (
-    <div>
-      <label className="mb-1 block text-[9px] font-semibold text-[#334155]">{label}</label>
-      <div className="relative">
-        <input
-          type={visible ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 pr-8 text-[10px] text-slate-700 outline-none transition focus:border-[#5876e8]"
-        />
-        <button type="button" onClick={onToggle} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-          {visible ? <EyeOff size={13} /> : <Eye size={13} />}
-        </button>
-      </div>
-      {helper && <p className="mt-1 text-[7px] text-slate-500">{helper}</p>}
-    </div>
-  )
-}
-
-function SelectField({
-  label, value, onChange, options,
-}: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
-  return (
-    <div>
-      <label className="mb-1 block text-[9px] font-semibold text-[#334155]">{label}</label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-8 w-full appearance-none rounded-md border border-slate-200 bg-white px-2.5 pr-8 text-[10px] text-slate-700 outline-none focus:border-[#5876e8]"
-        >
-          {options.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-        <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400" />
-      </div>
-    </div>
-  )
-}
-
-function IntegrationItem({
-  title, description, onClick,
-}: { title: string; description: string; onClick: () => void }) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
-      <div>
-        <p className="text-[10px] font-semibold text-[#334155]">{title}</p>
-        <p className="mt-0.5 text-[8px] text-slate-500">{description}</p>
-      </div>
-      <button type="button" onClick={onClick} className="h-7 rounded-md border border-[#5876e8] px-3 text-[9px] font-semibold text-[#4260d7] transition hover:bg-[#eef2ff]">
-        Configure
-      </button>
-    </div>
-  )
-}
-
-function SecurityItem({
-  icon, title, description,
-}: { icon: ReactNode; title: string; description: string }) {
-  return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 shrink-0 text-[#315fd7]">{icon}</span>
-      <div>
-        <p className="text-[9px] font-semibold text-[#334155]">{title}</p>
-        <p className="mt-0.5 text-[8px] leading-4 text-slate-500">{description}</p>
-      </div>
-    </div>
-  )
-}
-
-function ModalOverlay({ children }: { children: ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#111426]/60 p-4">
+    <div className={cn('rounded-xl border border-border bg-card p-5 shadow-sm', className)}>
       {children}
     </div>
   )
 }
 
-function ModalHeader({
-  title, description, onClose,
-}: { title: string; description: string; onClose: () => void }) {
+function CardTitle({
+  icon: Icon,
+  title,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
+  title: string
+}) {
   return (
-    <div className="flex items-start justify-between px-4 pb-3 pt-4">
-      <div>
-        <h2 className="text-[15px] font-bold text-[#111827]">{title}</h2>
-        <p className="mt-1 text-[8px] text-slate-500">{description}</p>
-      </div>
-      <button type="button" onClick={onClose} className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
-        <X size={15} />
-      </button>
+    <div className="flex items-center gap-2.5">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-primary">
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
+      </span>
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
     </div>
   )
 }
 
-function TestConnectionButton() {
+function SuccessBanner({ compact = false }: { compact?: boolean }) {
   return (
-    <button type="button" className="inline-flex h-8 items-center gap-2 rounded-md border border-[#5368f2] px-3 text-[9px] font-semibold text-[#4b5edc] transition hover:bg-[#f1f3ff]">
-      <Send size={12} />
-      Test Connection
-    </button>
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4',
+        compact ? 'py-2.5' : 'py-3.5'
+      )}
+    >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500">
+        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+      </span>
+      <span className="text-sm font-medium text-emerald-700">
+        Your changes has been saved successfully.
+      </span>
+    </div>
   )
 }
 
-function ToggleField({
-  label, checked, onChange, description,
-}: { label: string; checked: boolean; onChange: (value: boolean) => void; description: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  helper,
+}: {
+  label: string
+  value: string
+  onChange?: (value: string) => void
+  helper?: string
+}) {
   return (
-    <div className="flex items-center gap-3">
-      <div>
-        <p className="text-[9px] font-semibold text-[#334155]">{label}</p>
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</label>
+      <Input
+        value={value}
+        readOnly={!onChange}
+        onChange={(event) => onChange?.(event.target.value)}
+      />
+      {helper && <p className="mt-1.5 text-xs text-muted-foreground/80">{helper}</p>}
+    </div>
+  )
+}
+
+function PasswordField({
+  label,
+  value,
+  visible,
+  onChange,
+  onToggle,
+  helper,
+}: {
+  label: string
+  value: string
+  visible: boolean
+  onChange: (value: string) => void
+  onToggle: () => void
+  helper?: string
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</label>
+      <div className="relative">
+        <Input
+          type={visible ? 'text' : 'password'}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="pr-9"
+        />
         <button
           type="button"
-          onClick={() => onChange(!checked)}
-          className={`relative mt-1 h-5 w-10 rounded-full transition ${checked ? 'bg-[#4b43e8]' : 'bg-slate-300'}`}
+          onClick={onToggle}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
         >
-          <span className={`absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white transition ${checked ? 'left-[21px]' : 'left-[3px]'}`} />
+          {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
         </button>
       </div>
-      <span className="mt-4 text-[9px] text-[#334155]">{description}</span>
+      {helper && <p className="mt-1.5 text-xs text-muted-foreground/80">{helper}</p>}
     </div>
   )
 }
 
-function ImportantNotes({ items }: { items: string[] }) {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: string[]
+}) {
   return (
-    <div className="rounded-lg bg-[#f3f4fa] px-3 py-2.5">
-      <div className="mb-2 flex items-center gap-2">
-        <Info size={14} className="text-[#4b43e8]" />
-        <p className="text-[9px] font-bold text-[#334155]">Important Notes</p>
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 pr-8 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
       </div>
-      <ul className="space-y-1 pl-4 text-[7px] leading-3 text-[#475569]">
-        {items.map((item) => (
-          <li key={item} className="list-disc">{item}</li>
-        ))}
-      </ul>
+    </div>
+  )
+}
+
+function IntegrationRow({
+  title,
+  description,
+  onClick,
+}: {
+  title: string
+  description: string
+  onClick: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3.5">
+      <div>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Button variant="outline" size="sm" onClick={onClick}>
+        Configure
+      </Button>
+    </div>
+  )
+}
+
+function SecurityRow({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex gap-3">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={1.75} />
+      <div>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  )
+}
+
+function ModalShell({
+  title,
+  description,
+  onClose,
+  children,
+  footer,
+  maxWidth,
+}: {
+  title: string
+  description: string
+  onClose: () => void
+  children: ReactNode
+  footer: ReactNode
+  maxWidth: string
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-foreground/60 p-4">
+      <div className={cn('w-full overflow-hidden rounded-xl bg-card shadow-2xl', maxWidth)}>
+        <div className="flex items-start justify-between border-b border-border px-5 py-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4 px-5 py-5">{children}</div>
+
+        {footer}
+      </div>
     </div>
   )
 }
 
 function ModalFooter({ onCancel, onSave }: { onCancel: () => void; onSave: () => void }) {
   return (
-    <div className="flex justify-end gap-2 border-t border-slate-100 px-4 py-3">
-      <button type="button" onClick={onCancel} className="h-8 rounded-md border border-slate-200 bg-white px-4 text-[9px] font-semibold text-slate-700">
+    <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+      <Button variant="outline" onClick={onCancel}>
         Cancel
-      </button>
-      <button type="button" onClick={onSave} className="h-8 rounded-md bg-[#4b43e8] px-4 text-[9px] font-semibold text-white">
-        Save Configuration
-      </button>
+      </Button>
+      <Button onClick={onSave}>Save Configuration</Button>
+    </div>
+  )
+}
+
+function TestConnectionButton() {
+  return (
+    <Button variant="outline" size="sm" type="button">
+      <Send className="h-3.5 w-3.5" strokeWidth={1.75} />
+      Test Connection
+    </Button>
+  )
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+  description,
+}: {
+  label: string
+  checked: boolean
+  onChange: (value: boolean) => void
+  description: string
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div>
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <button
+          type="button"
+          onClick={() => onChange(!checked)}
+          className={cn(
+            'relative mt-1.5 h-5 w-9 rounded-full transition-colors',
+            checked ? 'bg-primary' : 'bg-muted'
+          )}
+        >
+          <span
+            className={cn(
+              'absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white transition-transform',
+              checked ? 'left-[19px]' : 'left-[3px]'
+            )}
+          />
+        </button>
+      </div>
+      <span className="mt-4 text-xs text-muted-foreground">{description}</span>
+    </div>
+  )
+}
+
+function NotesBox({ items }: { items: string[] }) {
+  return (
+    <div className="rounded-lg bg-muted/60 px-4 py-3">
+      <div className="mb-2 flex items-center gap-2">
+        <Info className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
+        <p className="text-xs font-semibold text-foreground">Important Notes</p>
+      </div>
+      <ul className="space-y-1 pl-4 text-xs leading-relaxed text-muted-foreground">
+        {items.map((item) => (
+          <li key={item} className="list-disc">
+            {item}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
